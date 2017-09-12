@@ -1,13 +1,19 @@
 import botocore.session
 import urllib2
 
-
 AWS_MD_AZ_URL = 'http://169.254.169.254/latest/meta-data/placement/availability-zone'
+AWS_INSTANZE_ID_URL = 'http://169.254.169.254/latest/meta-data/instance-id'
 
 
 def detect_region():
     try:
         return urllib2.urlopen(AWS_MD_AZ_URL, timeout=1).read()[:-1]
+    except urllib2.URLError:
+        return None
+
+def detect_instance_id():
+    try:
+        return urllib2.urlopen(AWS_INSTANZE_ID_URL, timeout=1).read()[:-1]
     except urllib2.URLError:
         return None
 
@@ -21,7 +27,6 @@ def cloudwatch_client(profile=None, region=None):
         session.set_config_variable('profile', profile)
     return session.create_client('cloudwatch')
 
-
 class TestClient(object):
     def __init__(self):
         import logging
@@ -33,13 +38,17 @@ class TestClient(object):
 
 
 class CW(object):
-    def __init__(self, namespace, base_name, dimensions=None, test=False):
+    def __init__(self, namespace, base_name, instance_id = False, dimensions=None, test=False):
         self.namespace = namespace
         self.base_name = base_name
         self.dimensions = []
+        self.data = []
+
         for k, v in dimensions.iteritems():
             self.dimensions.append({'Name': k, 'Value': v})
-        self.data = []
+
+        if instance_id:
+            self.dimensions.append({'Name': 'instance-id', 'Value': detect_instance_id()})
 
         if test:
             self.client = TestClient()

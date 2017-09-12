@@ -31,6 +31,8 @@ def cli(args=sys.argv[:]):
     ap = ArgumentParser(usage=usage, description=__doc__)
     ap.add_argument('--dimensions', metavar='key=value,key=value', default={},
                     action=ParseKv, help='CloudWatch metric dimensions')
+    ap.add_argument('--instance_id', action='store_true', 
+                    help='Add instance-id as a dimension\nWARNING: Will overwrite instance-id given via --dimensions option')
     ap.add_argument('--noop', action='store_true',
                     help='Don\'t push metrics, just log')
     ap.add_argument('namespace', help='CloudWatch namespace')
@@ -54,7 +56,7 @@ def cli(args=sys.argv[:]):
         result = e.returncode
         output = e.output
 
-    cw = aws.CW(args.namespace, args.base_name, args.dimensions, args.noop)
+    cw = aws.CW(args.namespace, args.base_name, args.instance_id, args.dimensions, args.noop)
     if args.send_status:
         cw.add('Status', result)
     if args.send_perfdata:
