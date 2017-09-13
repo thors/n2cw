@@ -26,7 +26,7 @@ class ParseKv(Action):
         setattr(namespace, self.dest, kv)
 
 
-def cli(args=sys.argv[:]):
+def cli(cliargs=sys.argv[:]):
     usage = "%(prog)s [options] namespace base_name -- command"
     ap = ArgumentParser(usage=usage, description=__doc__)
     ap.add_argument('--dimensions', metavar='key=value,key=value', default={},
@@ -45,8 +45,7 @@ def cli(args=sys.argv[:]):
                            dest='send_status', help="Don't send the check "
                            "status output")
 
-    args = ap.parse_args()
-
+    args = ap.parse_args(cliargs)
     result = 0
     try:
         output = check_output(args.command)
